@@ -6,6 +6,7 @@ import { terser } from 'rollup-plugin-terser';
 import css from 'rollup-plugin-css-only';
 import autoPreprocess from 'svelte-preprocess';
 import postcss from 'rollup-plugin-postcss';
+import { optimizeImports } from "carbon-preprocess-svelte";
 
 
 const production = !process.env.ROLLUP_WATCH;
@@ -50,7 +51,7 @@ export default {
 			css: ((css) => {
 				css.write("app/build/component.css");
 			}),
-			preprocess: autoPreprocess(),
+			preprocess: [autoPreprocess(),optimizeImports()],
 			emitCss: true,
 		}),
 		postcss({
