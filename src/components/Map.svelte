@@ -1,6 +1,8 @@
 <script>
 
     import { onMount } from 'svelte';
+    import FormStore from '../js/store.js';
+
     let container;
     let mapConfig = {
         zoom : 12,
@@ -13,15 +15,18 @@
     let map;
     let marker;
 
-    export const updateMarker = function (location) {
-        if (!marker.visible){
-            marker.setVisible(true);
-        } 
-        marker.setPosition(location);
-        map.panTo(location);
-        map.setZoom(15);
-
-    }
+    FormStore.subscribe((data) => {
+        if ( data !== undefined ) {
+            if (data.location !== undefined) {
+                if (!marker.visible){
+                    marker.setVisible(true);
+                } 
+                marker.setPosition(data.location);
+                map.panTo(data.location);
+                map.setZoom(15);
+            }
+        }
+    })
    
     onMount(async () => {
         map = new google.maps.Map(container, mapConfig);
