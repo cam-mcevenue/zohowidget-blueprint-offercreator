@@ -38,7 +38,8 @@ export default {
 		sourcemap: true,
 		format: 'iife',
 		name: 'app',
-		file: 'app/build/bundle.js'
+		file: 'app/build/bundle.js',
+		inlineDynamicImports: true,
 	},
 	plugins: [
 		svelte({
@@ -51,7 +52,7 @@ export default {
 			css: ((css) => {
 				css.write("app/build/component.css");
 			}),
-			preprocess: [autoPreprocess(),optimizeImports()],
+			preprocess: [optimizeImports(),autoPreprocess()],
 			emitCss: true,
 		}),
 		postcss({
@@ -61,7 +62,7 @@ export default {
 			  [
 				"sass",
 				{
-				  includePaths: ["./node_modules", "./node_modules/bulma", "./src"],
+				  includePaths: ["./node_modules", "./src"],
 				},
 			  ],
 			],
