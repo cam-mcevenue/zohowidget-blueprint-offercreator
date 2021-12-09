@@ -1,16 +1,17 @@
 <script>
 
     import { onMount, createEventDispatcher } from 'svelte';
+    import FormStore from '../js/store.js';
+    import { get } from 'svelte/store';
 
     let entityId;
-    let entityType;
-    let trigger;
-    let config;
-    let response;
+    let form_data;
+
+    FormStore.subscribe((data) => {
+        form_data = data;
+    })
 
     const dispatch = createEventDispatcher();
-
-    
 
     onMount(async () => {
         ZOHO.embeddedApp.init();
@@ -19,64 +20,65 @@
     ZOHO.embeddedApp.on("PageLoad", function(data) {
 
         ZOHO.CRM.UI.Resize({height: 440, width: 1024});
+        entityId = data.EntityId;
         
-        //add data to config object
-        if ((typeof data.EntityId) === 'object'){
-            entityId = data.EntityId[0];
-            trigger = "button";
-        } else {
-            entityId = data.EntityId;
-            trigger = "blueprint";
-        }
-    
-        entityType = data.Entity;
 
-        dispatch('zoho-ready', {trigger : trigger});
+        dispatch('zoho-ready');
         
     });
     
-    export async function updateZohoRecord (place_components) {
+    export async function updateZohoRecord () {
         
-        if (entityType == "Deals") {
-            config = {
-                Entity: entityType,
-                APIData:{
-                    "id": entityId,
-                    "Street_Address" : place_components.number + " " + place_components.street,
-                    "City" : place_components.city,
-                    "Province" : place_components.province,
-                    "Postal_Code" : place_components.postal,
-                    "Country" : place_components.country,
-                    "Unit": place_components.unit
-                }
-            }
-        } 
+        let deal = await ZOHO.CRM.API.getRecord({Entity: "Deals", RecordID: entityId});
 
-        if (entityType == "Contacts") {
-            config = {
-                Entity: entityType,
-                APIData:{
-                    "id": entityId,
-                    "Mailing_Street" : place_components.number + " " + place_components.street,
-                    "Mailing_City" : place_components.city,
-                    "Mailing_State" : place_components.province,
-                    "Mailing_Zip" : place_components.postal,
-                    "Mailing_Country" : place_components.country,
-                    "Mailing_Unit_Number": place_components.unit
-                }
-            }
-        } 
-        
-        response = await ZOHO.CRM.API.updateRecord(config);
-        let code = response.data[0].code;
-        console.log(code);
+        let offer_create = {
+            Entity: "Submitted_Offers",
+            APIData:{
+                "Street_Address" : form_data.components.number + " " + form_data.components.street,
+                "City" : form_data.components.city,
+                "Province" : form_data.components.province,
+                "Postal_Code" : form_data.components.postal,
+                "Country" : form_data.components.country,
+                "Unit_Number": form_data.unit,
+                "Offer_Type": form_data.offer_type,
+                "Deal" : {
+                    "id" : entityId
+                },
+                "Transaction_Type": deal.data[0].Transaction_Type,
+                "Status": "Drafting"
+
+            },
+            Trigger: ["workflow"]
+        }
+
+        if  (form_data.hasOwnProperty('offer_date')) {
+            offer_create.APIData["Offer_Date"] = form_data.offer_date + "T" + form_data.offer_time;
+        }
+
+        let deal_update = {
+            Entity: "Deals",
+            APIData:{
+                "id": entityId,
+                "Street_Address" : form_data.components.number + " " + form_data.components.street,
+                "City" : form_data.components.city,
+                "Province" : form_data.components.province,
+                "Postal_Code" : form_data.components.postal,
+                "Country" : form_data.components.country,
+                "Unit_Number": form_data.unit,
+            },
+            Trigger: ["workflow"]
+        }
+
+        let offer_response = await ZOHO.CRM.API.insertRecord(offer_create);
+
+        let deal_response = await ZOHO.CRM.API.updateRecord(deal_update);
+
         let data = {};
-        data.trigger = trigger;
-        if (response.data[0].code === "SUCCESS") {
-            data.message = `The address for this ${entityType.slice(0, -1)} was updated successfully`
-            data.code = 'success'
+        if (offer_response.data[0].code == "SUCCESS" && deal_response.data[0].code == "SUCCESS") {
+            data.message = `The Offer Record was created successfully.`
+            data.response_code = 'success'
         } else {
-            data.message = `The address for this ${entityType.slice(0, -1)} couldn't be updated. If this error continues talk to Cam.`;
+            data.message = `There was an error creating the Offer Record. If this error continues talk to Cam.`;
             data.code = 'error'
         }
         
@@ -84,7 +86,3 @@
         
     }
 </script>
-
-<svelte:head>
-
-</svelte:head>
