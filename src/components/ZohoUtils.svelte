@@ -66,6 +66,7 @@
                 "Postal_Code" : form_data.components.postal,
                 "Country" : form_data.components.country,
                 "Unit_Number": form_data.unit,
+                "Property_Type" : form_data.property_type,
             },
             Trigger: ["workflow"]
         }
