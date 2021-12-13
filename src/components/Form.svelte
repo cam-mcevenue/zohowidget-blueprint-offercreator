@@ -27,6 +27,8 @@
 
     let input;
     let unit = null;
+    let property_type;
+    let property_type_invalid = false;
     let offer_type;
     let offer_type_invalid = false;
     let offer_date = null;
@@ -39,6 +41,21 @@
     let zohoUtils;
 	let zohoResponse;
     let showError = false;
+
+    let property_types = [
+        {
+            id : undefined,
+            text: "Select property type...",
+        },
+        {
+            id : "House",
+            text: "House",
+        },
+        {
+            id : "Condo",
+            text: "Condo",
+        }
+    ]
 
     let offer_types = [
         {
@@ -174,6 +191,16 @@
         updateFormStore({offer_type : offer_type});
     }
 
+    function handlePropertyTypeChange (e) {
+        property_type = e.detail.selectedId
+
+        if (e.detail.selectedId != undefined ) {
+            property_type_invalid = false;
+        }
+
+        updateFormStore({property_type : property_type});
+    }
+
     function handleTimeChange (e) {
         offer_time = e.detail.selectedId
 
@@ -306,6 +333,17 @@
             />
         </FormGroup>
         <FormGroup legendText="Offer Info">
+            <Dropdown
+                titleText="Property Type"
+                selectedIndex={0}
+                items={property_types}
+                style="padding-top: 0.5rem;"
+                bind:value={offer_type}
+                on:select={handlePropertyTypeChange}
+                type="default"
+                invalid={offer_type_invalid}
+                invalidText="Please select a Property Type"
+            />
             <Dropdown
                 titleText="Offer Type"
                 selectedIndex={0}
