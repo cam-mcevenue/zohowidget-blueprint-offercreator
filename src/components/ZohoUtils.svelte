@@ -45,7 +45,8 @@
                     "id" : entityId
                 },
                 "Transaction_Type": deal.data[0].Transaction_Type,
-                "Status": "Drafting"
+                "Status": "Drafting",
+                "Property_Type" : form_data.property_type,
 
             },
             Trigger: ["workflow"]
